@@ -22,8 +22,14 @@
 
 package main
 
-import "fmt"
+import (
+	lua "github.com/yuin/gopher-lua"
+)
 
 func main() {
-	fmt.Println("Hello, Install&Go!")
+	L := lua.NewState()
+	defer L.Close()
+	if err := L.DoString(`print("Hello, Install&Go!")`); err != nil {
+		panic(err)
+	}
 }
