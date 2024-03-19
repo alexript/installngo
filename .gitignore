@@ -2,4 +2,5 @@
 /obj
 installngo.exe
 installngo
+*.wasm
 
