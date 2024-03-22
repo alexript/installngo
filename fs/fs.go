@@ -23,17 +23,47 @@
 package fs
 
 import (
+	"archive/zip"
+	"fmt"
+	"strings"
+
 	"github.com/bep/overlayfs"
 	"github.com/spf13/afero"
+	"github.com/spf13/afero/zipfs"
 )
 
-func New(cwd string) *overlayfs.OverlayFs {
+func New(cwd string, bundlesPath string) *overlayfs.OverlayFs {
 
 	newFS := overlayfs.New(overlayfs.Options{Fss: []afero.Fs{}, FirstWritable: false})
 
 	osFS := afero.NewOsFs()
 	basepathFS := afero.NewBasePathFs(osFS, cwd)
 	newFS = newFS.Append(basepathFS)
+
+	dir, err := basepathFS.Open("/")
+	if err != nil {
+		fmt.Printf("Failed bundles search: %q\n", err.Error())
+		return newFS
+	}
+	defer dir.Close()
+	names, err := dir.Readdirnames(-1)
+	if err != nil {
+
+		fmt.Printf("Failed bundles search: %q\n", err.Error())
+		return newFS
+	}
+
+	for _, name := range names {
+		if strings.HasSuffix(strings.ToLower(name), ".zip") {
+			//			fmt.Printf("name: %q\n", name)
+			zrc, err := zip.OpenReader(name)
+			if err == nil {
+				zfs := zipfs.New(&zrc.Reader)
+				fs := &afero.Afero{Fs: zfs}
+				newFS = newFS.Append(fs)
+			}
+		}
+	}
 
 	return newFS
 }

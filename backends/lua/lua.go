@@ -44,7 +44,7 @@ func loFindFile(L *lua.LState, name string) (string, string) {
 		messages = append(messages, err.Error())
 	} else {
 		if ofs == nil {
-			ofs = fs.New(ex)
+			ofs = fs.New(ex, ex)
 		}
 		// fmt.Printf("package path: '%q'\n", name)
 		if fi, err := ofs.Stat(name); err == nil {
