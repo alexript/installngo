@@ -26,4 +26,5 @@ import "github.com/alexript/installngo/backends/lua"
 
 func main() {
 	lua.DoString(`print("Hello, Install&Go!")`)
+	lua.DoFile(`examples/hello.lua`)
 }

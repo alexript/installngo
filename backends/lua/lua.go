@@ -11,3 +11,11 @@ func DoString(luastring string) {
 		panic(err)
 	}
 }
+
+func DoFile(filename string) {
+	L := lua.NewState()
+	defer L.Close()
+	if err := L.DoFile(filename); err != nil {
+		panic(err)
+	}
+}
