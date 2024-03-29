@@ -108,6 +108,10 @@ func backendLoader(L *lua.LState) int {
 	return 1
 }
 
+func attachLibsAndObjects(L *lua.LState) {
+	AttachPlatform(L)
+}
+
 func newLState() *lua.LState {
 	L := lua.NewState()
 
@@ -120,6 +124,7 @@ func newLState() *lua.LState {
 	loaders.Append(L.NewFunction(backendLoader))
 
 	L.SetField(L.Get(lua.RegistryIndex), "_LOADERS", loaders)
+	attachLibsAndObjects(L)
 
 	return L
 }
