@@ -4,4 +4,5 @@ installngo.exe
 installngo
 *.wasm
 tmp
-
+main
+main.exe

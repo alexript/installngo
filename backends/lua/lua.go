@@ -35,7 +35,7 @@ import (
 
 var ofs *overlayfs.OverlayFs
 
-func loFindFile(L *lua.LState, name string) (string, string) {
+func loFindFile(name string) (string, string) {
 	messages := []string{}
 	name = strings.Replace(name, ".", "/", -1)
 
@@ -50,10 +50,26 @@ func loFindFile(L *lua.LState, name string) (string, string) {
 		if fi, err := ofs.Stat(name); err == nil {
 			if fi.IsDir() {
 				filename := filepath.Join(name, "init.lua")
-				return filename, ""
+				if fffi, err := ofs.Stat(filename); err == nil {
+					if !fffi.IsDir() {
+						return filename, ""
+					} else {
+						messages = append(messages, "Unable to find init.lua")
+					}
+				} else {
+					messages = append(messages, err.Error())
+				}
 			} else {
 				filename := name + ".lua"
-				return filename, ""
+				if ffi, err := ofs.Stat(filename); err == nil {
+					if !ffi.IsDir() {
+						return filename, ""
+					} else {
+						messages = append(messages, filename+" is a directory.")
+					}
+				} else {
+					messages = append(messages, err.Error())
+				}
 			}
 		} else {
 			// fmt.Printf("err:: %q\n", err)
@@ -67,7 +83,7 @@ func loFindFile(L *lua.LState, name string) (string, string) {
 func backendLoader(L *lua.LState) int {
 	name := L.CheckString(1)
 	// fmt.Printf("Require:: %q\n", name)
-	path, msg := loFindFile(L, name)
+	path, msg := loFindFile(name)
 	// fmt.Printf("Requred path:: %q\n", path)
 	if ofs == nil {
 		L.Push(lua.LString(`Unable to initialize filesystem abstractions`))
