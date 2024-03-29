@@ -110,6 +110,7 @@ func backendLoader(L *lua.LState) int {
 
 func attachLibsAndObjects(L *lua.LState) {
 	AttachPlatform(L)
+	AttachLuaLibs(L)
 }
 
 func newLState() *lua.LState {
