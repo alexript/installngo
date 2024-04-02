@@ -23,12 +23,58 @@
 package lua
 
 import (
-	"github.com/alexript/installngo/platform"
+	"runtime"
+
 	lua "github.com/yuin/gopher-lua"
 	luar "layeh.com/gopher-luar"
 )
 
-func AttachPlatform(L *lua.LState) {
+func isWindows(L *lua.LState) int {
+	if runtime.GOOS == "windows" {
+		L.Push(lua.LTrue)
+	} else {
+		L.Push(lua.LFalse)
+	}
+	return 1
+}
 
-	L.SetGlobal("platform", luar.New(L, platform.Create(L)))
+func isLinux(L *lua.LState) int {
+	if runtime.GOOS == "linux" {
+		L.Push(lua.LTrue)
+	} else {
+		L.Push(lua.LFalse)
+	}
+	return 1
+}
+
+func isMacos(L *lua.LState) int {
+	if runtime.GOOS == "macos" {
+		L.Push(lua.LTrue)
+	} else {
+		L.Push(lua.LFalse)
+	}
+	return 1
+}
+
+type platform struct {
+	OsName    string
+	Arch      string
+	IsWindows *lua.LFunction
+	IsLinux   *lua.LFunction
+	IsMacOS   *lua.LFunction
+}
+
+func platformLoader(L *lua.LState) int {
+	tbl := luar.New(L, &platform{
+		OsName:    runtime.GOOS,
+		Arch:      runtime.GOARCH,
+		IsWindows: L.NewFunction(isWindows),
+		IsLinux:   L.NewFunction(isLinux),
+		IsMacOS:   L.NewFunction(isMacos),
+	})
+	L.Push(tbl)
+	return 1
+}
+func AttachPlatform(L *lua.LState) {
+	L.PreloadModule("platform", platformLoader)
 }
