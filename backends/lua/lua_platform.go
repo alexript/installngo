@@ -29,31 +29,24 @@ import (
 	luar "layeh.com/gopher-luar"
 )
 
-func isWindows(L *lua.LState) int {
-	if runtime.GOOS == "windows" {
+func isOsName(L *lua.LState, osname string) int {
+	if runtime.GOOS == osname {
 		L.Push(lua.LTrue)
 	} else {
 		L.Push(lua.LFalse)
 	}
 	return 1
+}
+func isWindows(L *lua.LState) int {
+	return isOsName(L, "windows")
 }
 
 func isLinux(L *lua.LState) int {
-	if runtime.GOOS == "linux" {
-		L.Push(lua.LTrue)
-	} else {
-		L.Push(lua.LFalse)
-	}
-	return 1
+	return isOsName(L, "linux")
 }
 
 func isMacos(L *lua.LState) int {
-	if runtime.GOOS == "macos" {
-		L.Push(lua.LTrue)
-	} else {
-		L.Push(lua.LFalse)
-	}
-	return 1
+	return isOsName(L, "macos")
 }
 
 type platform struct {
