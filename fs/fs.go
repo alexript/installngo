@@ -48,7 +48,6 @@ func New(cwd string, bundlesPath string) *overlayfs.OverlayFs {
 	defer dir.Close()
 	names, err := dir.Readdirnames(-1)
 	if err != nil {
-
 		fmt.Printf("Failed bundles search: %q\n", err.Error())
 		return newFS
 	}
@@ -60,7 +59,28 @@ func New(cwd string, bundlesPath string) *overlayfs.OverlayFs {
 			if err == nil {
 				zfs := zipfs.New(&zrc.Reader)
 				fs := &afero.Afero{Fs: zfs}
-				newFS = newFS.Append(fs)
+				if fi, err := fs.Stat("/lua"); err == nil {
+					if fi.IsDir() {
+						luaFS := afero.NewBasePathFs(fs, "/lua")
+						newFS = newFS.Append(luaFS)
+						//
+						// if ffi, err := luaFS.Stat("/init.lua"); err == nil {
+						// 	if !ffi.IsDir() {
+						//
+						// 		file, err := luaFS.Open("/init.lua")
+						// 		if err == nil {
+						// 			defer file.Close()
+						// 			fn, err1 := L.Load(file, "/init.lua")
+						// 			if err1 != nil {
+						// 				L.RaiseError(err1.Error())
+						// 			}
+						// 			L.Push(fn)
+						// 		}
+						//
+						// 	}
+						// }
+					}
+				}
 			}
 		}
 	}
