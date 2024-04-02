@@ -30,5 +30,5 @@ import (
 
 func AttachPlatform(L *lua.LState) {
 
-	L.SetGlobal("platform", luar.New(L, platform.Create()))
+	L.SetGlobal("platform", luar.New(L, platform.Create(L)))
 }

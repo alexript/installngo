@@ -22,14 +22,53 @@
 
 package platform
 
+import (
+	"runtime"
+
+	lua "github.com/yuin/gopher-lua"
+)
+
 type Platform struct {
-	OsName string
-	Arch   string
+	OsName    string
+	Arch      string
+	IsWindows *lua.LFunction
+	IsLinux   *lua.LFunction
+	IsMacOS   *lua.LFunction
 }
 
-func Create() *Platform {
+func isWindows(L *lua.LState) int {
+	if runtime.GOOS == "windows" {
+		L.Push(lua.LTrue)
+	} else {
+		L.Push(lua.LFalse)
+	}
+	return 1
+}
+
+func isLinux(L *lua.LState) int {
+	if runtime.GOOS == "linux" {
+		L.Push(lua.LTrue)
+	} else {
+		L.Push(lua.LFalse)
+	}
+	return 1
+}
+
+func isMacos(L *lua.LState) int {
+	if runtime.GOOS == "macos" {
+		L.Push(lua.LTrue)
+	} else {
+		L.Push(lua.LFalse)
+	}
+	return 1
+}
+
+func Create(L *lua.LState) *Platform {
 	return &Platform{
-		OsName: "undefined",
-		Arch:   "undefined",
+		OsName:    runtime.GOOS,
+		Arch:      runtime.GOARCH,
+		IsWindows: L.NewFunction(isWindows),
+		IsLinux:   L.NewFunction(isLinux),
+		IsMacOS:   L.NewFunction(isMacos),
 	}
 }

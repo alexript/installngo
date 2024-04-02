@@ -67,7 +67,7 @@ func AttachLuaLibs(L *lua.LState) {
 	//	pprof.Preload(L)
 	//	prometheus.Preload(L)
 	regexp.Preload(L)
-	///	runtime.Preload(L)
+	// runtime.Preload(L)
 	//	shellescape.Preload(L)
 	//	stats.Preload(L)
 	storage.Preload(L)
