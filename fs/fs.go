@@ -32,51 +32,51 @@ import (
 	"github.com/spf13/afero/zipfs"
 )
 
-func New(cwd string, bundlesPath string) *overlayfs.OverlayFs {
+func New(cwd string) *overlayfs.OverlayFs {
 
-	newFS := overlayfs.New(overlayfs.Options{Fss: []afero.Fs{}, FirstWritable: false})
+	newVirtualFS := overlayfs.New(overlayfs.Options{Fss: []afero.Fs{}, FirstWritable: false})
 
 	osFS := afero.NewOsFs()
 	cwdFS := afero.NewBasePathFs(osFS, cwd)
 
-	basepathFS := cwdFS
+	baseLuaFS := cwdFS
 
-	if luadir, err := cwdFS.Stat("/lua"); err == nil {
-		if luadir.IsDir() {
-			basepathFS = afero.NewBasePathFs(osFS, cwd+"/lua")
+	if cwdLuadirStat, err := cwdFS.Stat("/lua"); err == nil {
+		if cwdLuadirStat.IsDir() {
+			baseLuaFS = afero.NewBasePathFs(osFS, cwd+"/lua")
 		}
 	}
 
-	newFS = newFS.Append(basepathFS)
+	newVirtualFS = newVirtualFS.Append(baseLuaFS)
 
-	dir, err := cwdFS.Open("/")
+	cwdir, err := cwdFS.Open("/")
 	if err != nil {
 		fmt.Printf("Failed bundles search: %q\n", err.Error())
-		return newFS
+		return newVirtualFS
 	}
-	defer dir.Close()
-	names, err := dir.Readdirnames(-1)
+	defer cwdir.Close()
+	filenamesInCwd, err := cwdir.Readdirnames(-1)
 	if err != nil {
 		fmt.Printf("Failed bundles search: %q\n", err.Error())
-		return newFS
+		return newVirtualFS
 	}
 
-	for _, name := range names {
-		if strings.HasSuffix(strings.ToLower(name), ".zip") {
+	for _, filename := range filenamesInCwd {
+		if strings.HasSuffix(strings.ToLower(filename), ".zip") {
 			//fmt.Printf("name: %q\n", name)
-			zrc, err := zip.OpenReader(name)
+			zrc, err := zip.OpenReader(filename)
 			if err == nil {
-				zfs := zipfs.New(&zrc.Reader)
-				fs := &afero.Afero{Fs: zfs}
-				if fi, err := fs.Stat("/lua"); err == nil {
-					if fi.IsDir() {
-						luaFS := afero.NewBasePathFs(fs, "/lua")
-						newFS = newFS.Append(luaFS)
+				zipReaderFS := zipfs.New(&zrc.Reader)
+				zipFS := &afero.Afero{Fs: zipReaderFS}
+				if luadirInZipStat, err := zipFS.Stat("/lua"); err == nil {
+					if luadirInZipStat.IsDir() {
+						zipLuaFS := afero.NewBasePathFs(zipFS, "/lua")
+						newVirtualFS = newVirtualFS.Append(zipLuaFS)
 					}
 				}
 			}
 		}
 	}
 
-	return newFS
+	return newVirtualFS
 }

@@ -37,8 +37,8 @@ var ofs *overlayfs.OverlayFs
 
 func createCurrentFS() {
 	if ofs == nil {
-		ex, _ := os.Getwd()
-		ofs = fs.New(ex, ex)
+		cwd, _ := os.Getwd()
+		ofs = fs.New(cwd)
 	}
 }
 
@@ -49,16 +49,15 @@ func GetCurrentFS() *overlayfs.OverlayFs {
 
 func loFindFile(name string) (string, string) {
 	messages := []string{}
-	name = strings.Replace(name, ".", "/", -1)
+	requiredfilename := strings.Replace(name, ".", "/", -1)
 
 	createCurrentFS()
-	// fmt.Printf("package path: '%q'\n", name)
-	if fi, err := ofs.Stat(name); err == nil {
-		if fi.IsDir() {
-			filename := filepath.Join(name, "init.lua")
-			if fffi, err := ofs.Stat(filename); err == nil {
-				if !fffi.IsDir() {
-					return filename, ""
+	if requiredNameStat, err := ofs.Stat(requiredfilename); err == nil {
+		if requiredNameStat.IsDir() {
+			initLua := filepath.Join(requiredfilename, "init.lua")
+			if initLuaStat, err := ofs.Stat(initLua); err == nil {
+				if !initLuaStat.IsDir() {
+					return initLua, ""
 				} else {
 					messages = append(messages, "Unable to find init.lua")
 				}
@@ -66,12 +65,12 @@ func loFindFile(name string) (string, string) {
 				messages = append(messages, err.Error())
 			}
 		} else {
-			filename := name + ".lua"
-			if ffi, err := ofs.Stat(filename); err == nil {
-				if !ffi.IsDir() {
-					return filename, ""
+			luaFilename := requiredfilename + ".lua"
+			if luaFileStat, err := ofs.Stat(luaFilename); err == nil {
+				if !luaFileStat.IsDir() {
+					return luaFilename, ""
 				} else {
-					messages = append(messages, filename+" is a directory.")
+					messages = append(messages, luaFilename+" is a directory.")
 				}
 			} else {
 				messages = append(messages, err.Error())
@@ -90,25 +89,23 @@ func CloseOFS() {
 }
 
 func VFSLoader(L *lual.LState) int {
-	name := L.CheckString(1)
-	// fmt.Printf("Require:: %q\n", name)
-	path, msg := loFindFile(name)
-	// fmt.Printf("Requred path:: %q\n", path)
+	requiredName := L.CheckString(1)
+	fileName, msg := loFindFile(requiredName)
 	if ofs == nil {
 		L.Push(lual.LString(`Unable to initialize filesystem abstractions`))
 		return 1
 	}
-	if len(path) == 0 {
+	if len(fileName) == 0 {
 		L.Push(lual.LString(msg))
 		return 1
 	}
-	file, err := ofs.Open(path)
+	file, err := ofs.Open(fileName)
 	if err != nil {
 		L.Push(lual.LString(err.Error()))
 		return 1
 	}
 	defer file.Close()
-	fn, err1 := L.Load(file, path)
+	fn, err1 := L.Load(file, fileName)
 	if err1 != nil {
 		L.RaiseError(err1.Error())
 	}
