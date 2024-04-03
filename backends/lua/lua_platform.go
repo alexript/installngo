@@ -25,39 +25,39 @@ package lua
 import (
 	"runtime"
 
-	lua "github.com/yuin/gopher-lua"
+	lual "github.com/yuin/gopher-lua"
 	luar "layeh.com/gopher-luar"
 )
 
-func isOsName(L *lua.LState, osname string) int {
+func isOsName(L *lual.LState, osname string) int {
 	if runtime.GOOS == osname {
-		L.Push(lua.LTrue)
+		L.Push(lual.LTrue)
 	} else {
-		L.Push(lua.LFalse)
+		L.Push(lual.LFalse)
 	}
 	return 1
 }
-func isWindows(L *lua.LState) int {
+func isWindows(L *lual.LState) int {
 	return isOsName(L, "windows")
 }
 
-func isLinux(L *lua.LState) int {
+func isLinux(L *lual.LState) int {
 	return isOsName(L, "linux")
 }
 
-func isMacos(L *lua.LState) int {
+func isMacos(L *lual.LState) int {
 	return isOsName(L, "macos")
 }
 
 type platform struct {
 	OsName    string
 	Arch      string
-	IsWindows *lua.LFunction
-	IsLinux   *lua.LFunction
-	IsMacOS   *lua.LFunction
+	IsWindows *lual.LFunction
+	IsLinux   *lual.LFunction
+	IsMacOS   *lual.LFunction
 }
 
-func platformLoader(L *lua.LState) int {
+func platformLoader(L *lual.LState) int {
 	tbl := luar.New(L, &platform{
 		OsName:    runtime.GOOS,
 		Arch:      runtime.GOARCH,
@@ -68,6 +68,6 @@ func platformLoader(L *lua.LState) int {
 	L.Push(tbl)
 	return 1
 }
-func AttachPlatform(L *lua.LState) {
+func AttachPlatform(L *lual.LState) {
 	L.PreloadModule("platform", platformLoader)
 }

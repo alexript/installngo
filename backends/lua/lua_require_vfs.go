@@ -30,51 +30,56 @@ import (
 	"github.com/alexript/installngo/fs"
 
 	"github.com/bep/overlayfs"
-	lua "github.com/yuin/gopher-lua"
+	lual "github.com/yuin/gopher-lua"
 )
 
 var ofs *overlayfs.OverlayFs
+
+func createCurrentFS() {
+	if ofs == nil {
+		ex, _ := os.Getwd()
+		ofs = fs.New(ex, ex)
+	}
+}
+
+func GetCurrentFS() *overlayfs.OverlayFs {
+	createCurrentFS()
+	return ofs
+}
 
 func loFindFile(name string) (string, string) {
 	messages := []string{}
 	name = strings.Replace(name, ".", "/", -1)
 
-	ex, err := os.Getwd()
-	if err != nil {
-		messages = append(messages, err.Error())
-	} else {
-		if ofs == nil {
-			ofs = fs.New(ex, ex)
-		}
-		// fmt.Printf("package path: '%q'\n", name)
-		if fi, err := ofs.Stat(name); err == nil {
-			if fi.IsDir() {
-				filename := filepath.Join(name, "init.lua")
-				if fffi, err := ofs.Stat(filename); err == nil {
-					if !fffi.IsDir() {
-						return filename, ""
-					} else {
-						messages = append(messages, "Unable to find init.lua")
-					}
+	createCurrentFS()
+	// fmt.Printf("package path: '%q'\n", name)
+	if fi, err := ofs.Stat(name); err == nil {
+		if fi.IsDir() {
+			filename := filepath.Join(name, "init.lua")
+			if fffi, err := ofs.Stat(filename); err == nil {
+				if !fffi.IsDir() {
+					return filename, ""
 				} else {
-					messages = append(messages, err.Error())
+					messages = append(messages, "Unable to find init.lua")
 				}
 			} else {
-				filename := name + ".lua"
-				if ffi, err := ofs.Stat(filename); err == nil {
-					if !ffi.IsDir() {
-						return filename, ""
-					} else {
-						messages = append(messages, filename+" is a directory.")
-					}
-				} else {
-					messages = append(messages, err.Error())
-				}
+				messages = append(messages, err.Error())
 			}
 		} else {
-			// fmt.Printf("err:: %q\n", err)
-			messages = append(messages, err.Error())
+			filename := name + ".lua"
+			if ffi, err := ofs.Stat(filename); err == nil {
+				if !ffi.IsDir() {
+					return filename, ""
+				} else {
+					messages = append(messages, filename+" is a directory.")
+				}
+			} else {
+				messages = append(messages, err.Error())
+			}
 		}
+	} else {
+		// fmt.Printf("err:: %q\n", err)
+		messages = append(messages, err.Error())
 	}
 
 	return "", strings.Join(messages, "\n\t")
@@ -84,22 +89,22 @@ func CloseOFS() {
 	ofs = nil
 }
 
-func VFSLoader(L *lua.LState) int {
+func VFSLoader(L *lual.LState) int {
 	name := L.CheckString(1)
 	// fmt.Printf("Require:: %q\n", name)
 	path, msg := loFindFile(name)
 	// fmt.Printf("Requred path:: %q\n", path)
 	if ofs == nil {
-		L.Push(lua.LString(`Unable to initialize filesystem abstractions`))
+		L.Push(lual.LString(`Unable to initialize filesystem abstractions`))
 		return 1
 	}
 	if len(path) == 0 {
-		L.Push(lua.LString(msg))
+		L.Push(lual.LString(msg))
 		return 1
 	}
 	file, err := ofs.Open(path)
 	if err != nil {
-		L.Push(lua.LString(err.Error()))
+		L.Push(lual.LString(err.Error()))
 		return 1
 	}
 	defer file.Close()

@@ -23,25 +23,48 @@
 package lua
 
 import (
-	lua "github.com/yuin/gopher-lua"
+	lual "github.com/yuin/gopher-lua"
 )
 
-func attachLibsAndObjects(L *lua.LState) {
-	AttachPlatform(L)
-	AttachLuaLibs(L)
+func initLuaFile(L *lual.LState) {
+	luaFS := GetCurrentFS()
+	if luaFS != nil {
+		if ffi, err := luaFS.Stat("/init.lua"); err == nil {
+			if !ffi.IsDir() {
+				file, err := luaFS.Open("/init.lua")
+				if err == nil {
+					defer file.Close()
+					fn, err1 := L.Load(file, "/init.lua")
+					if err1 != nil {
+						L.RaiseError(err1.Error())
+					}
+					L.Push(fn)
+					L.PCall(0, lual.MultRet, nil)
+				}
+
+			}
+		}
+	}
+
 }
 
-func newLState() *lua.LState {
-	L := lua.NewState()
+func attachLibsAndObjects(L *lual.LState) {
+	AttachPlatform(L)
+	AttachLuaLibs(L)
+	initLuaFile(L)
+}
 
-	loaders, ok := L.GetField(L.Get(lua.RegistryIndex), "_LOADERS").(*lua.LTable)
+func newLState() *lual.LState {
+	L := lual.NewState()
+
+	loaders, ok := L.GetField(L.Get(lual.RegistryIndex), "_LOADERS").(*lual.LTable)
 	if !ok {
 		L.RaiseError("package.loaders must be a table")
 	}
 
 	loaders.Append(L.NewFunction(VFSLoader))
 
-	L.SetField(L.Get(lua.RegistryIndex), "_LOADERS", loaders)
+	L.SetField(L.Get(lual.RegistryIndex), "_LOADERS", loaders)
 	attachLibsAndObjects(L)
 
 	return L

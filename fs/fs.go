@@ -63,22 +63,6 @@ func New(cwd string, bundlesPath string) *overlayfs.OverlayFs {
 					if fi.IsDir() {
 						luaFS := afero.NewBasePathFs(fs, "/lua")
 						newFS = newFS.Append(luaFS)
-						//
-						// if ffi, err := luaFS.Stat("/init.lua"); err == nil {
-						// 	if !ffi.IsDir() {
-						//
-						// 		file, err := luaFS.Open("/init.lua")
-						// 		if err == nil {
-						// 			defer file.Close()
-						// 			fn, err1 := L.Load(file, "/init.lua")
-						// 			if err1 != nil {
-						// 				L.RaiseError(err1.Error())
-						// 			}
-						// 			L.Push(fn)
-						// 		}
-						//
-						// 	}
-						// }
 					}
 				}
 			}

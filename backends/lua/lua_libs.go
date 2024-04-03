@@ -40,10 +40,10 @@ import (
 	"github.com/vadv/gopher-lua-libs/time"
 	"github.com/vadv/gopher-lua-libs/xmlpath"
 	"github.com/vadv/gopher-lua-libs/yaml"
-	lua "github.com/yuin/gopher-lua"
+	lual "github.com/yuin/gopher-lua"
 )
 
-func AttachLuaLibs(L *lua.LState) {
+func AttachLuaLibs(L *lual.LState) {
 	//	libs.Preload(L)
 	plugin.Preload(L)
 
