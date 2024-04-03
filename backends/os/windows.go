@@ -20,14 +20,42 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package main
+//go:build windows
 
-import "github.com/alexript/installngo/backends/lua"
+package os
 
-func main() {
-	//lua.DoString(`print("Hello, Install&Go!")`)
-	//lua.DoFile(`lua/examples/hello.lua`)
-	//lua.DoRequire(`examples.require`)
-	//lua.DoRequire("examples.hello")
-	lua.DoNop()
+import "fmt"
+
+var (
+	distrName string = "unknown"
+	distrVer  string = "unknown"
+)
+
+func getDistrName() string {
+	readRegestry()
+	return distrName
+}
+
+func getDistrVer() string {
+	readRegestry()
+	return distrVer
+}
+
+func readRegestry() {
+
+	k, err := registry.OpenKey(registry.LOCAL_MACHINE, `SOFTWARE\Microsoft\Windows NT\CurrentVersion`, registry.QUERY_VALUE)
+	if err == nil {
+		defer k.Close()
+
+		pn, _, err := k.GetStringValue("ProductName")
+		if err == nil {
+			distrName = fmt.Sprint(pn)
+		}
+
+		cb, _, err := k.GetStringValue("CurrentBuild")
+		if err == nil {
+			distrVer = fmt.Sprint(cb)
+		}
+	}
+
 }

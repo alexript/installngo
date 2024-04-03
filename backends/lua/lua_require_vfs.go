@@ -23,6 +23,7 @@
 package lua
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -47,12 +48,37 @@ func GetCurrentFS() *overlayfs.OverlayFs {
 	return ofs
 }
 
+func dumpOFS(cwd string) {
+
+	cwdir, err := ofs.Open(cwd)
+	if err != nil {
+		fmt.Printf("Failed bundles search: %q\n", err.Error())
+	}
+	defer cwdir.Close()
+	filenamesInCwd, err := cwdir.Readdirnames(-1)
+	if err != nil {
+		fmt.Printf("Failed bundles search: %q\n", err.Error())
+	}
+
+	for _, filename := range filenamesInCwd {
+		fmt.Printf("name: %q\n", cwd+"/"+filename)
+		if fnStat, err := ofs.Stat(filename); err == nil {
+			if fnStat.IsDir() {
+				dumpOFS(cwd + "/" + filename)
+			}
+		}
+	}
+
+}
+
 func loFindFile(name string) (string, string) {
 	messages := []string{}
 	requiredfilename := strings.Replace(name, ".", "/", -1)
-
+	//fmt.Printf("%q\n", requiredfilename)
 	createCurrentFS()
+	//dumpOFS("/")
 	if requiredNameStat, err := ofs.Stat(requiredfilename); err == nil {
+		//fmt.Printf("%q\n", requiredNameStat)
 		if requiredNameStat.IsDir() {
 			initLua := filepath.Join(requiredfilename, "init.lua")
 			if initLuaStat, err := ofs.Stat(initLua); err == nil {
@@ -64,21 +90,19 @@ func loFindFile(name string) (string, string) {
 			} else {
 				messages = append(messages, err.Error())
 			}
-		} else {
-			luaFilename := requiredfilename + ".lua"
-			if luaFileStat, err := ofs.Stat(luaFilename); err == nil {
-				if !luaFileStat.IsDir() {
-					return luaFilename, ""
-				} else {
-					messages = append(messages, luaFilename+" is a directory.")
-				}
-			} else {
-				messages = append(messages, err.Error())
-			}
 		}
 	} else {
 		// fmt.Printf("err:: %q\n", err)
-		messages = append(messages, err.Error())
+		luaFilename := requiredfilename + ".lua"
+		if luaFileStat, err := ofs.Stat(luaFilename); err == nil {
+			if !luaFileStat.IsDir() {
+				return luaFilename, ""
+			} else {
+				messages = append(messages, luaFilename+" is a directory.")
+			}
+		} else {
+			messages = append(messages, err.Error())
+		}
 	}
 
 	return "", strings.Join(messages, "\n\t")

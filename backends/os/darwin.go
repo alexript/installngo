@@ -20,14 +20,34 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package main
+//go:build darwin
 
-import "github.com/alexript/installngo/backends/lua"
+package os
 
-func main() {
-	//lua.DoString(`print("Hello, Install&Go!")`)
-	//lua.DoFile(`lua/examples/hello.lua`)
-	//lua.DoRequire(`examples.require`)
-	//lua.DoRequire("examples.hello")
-	lua.DoNop()
+import (
+	"os/exec"
+	"strings"
+)
+
+var (
+	distrName string = "unknown"
+	distrVer  string = "unknown"
+)
+
+func getDistrName() string {
+	sw_vers()
+	return distrName
+}
+
+func getDistrVer() string {
+	sw_vers()
+	return distrVer
+}
+func sw_vers() {
+	output, err := exec.Command("sw_vers").Output()
+	if err == nil {
+		split := strings.Split(string(output), "\n")
+		distrName = strings.TrimSpace(strings.Split(split[1], "\t")[1])
+		distrVer = strings.TrimSpace(strings.Split(split[2], "\t")[1])
+	}
 }

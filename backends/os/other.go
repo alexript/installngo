@@ -20,14 +20,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package main
+//go:build !linux && !windows && !darwin
 
-import "github.com/alexript/installngo/backends/lua"
+package os
 
-func main() {
-	//lua.DoString(`print("Hello, Install&Go!")`)
-	//lua.DoFile(`lua/examples/hello.lua`)
-	//lua.DoRequire(`examples.require`)
-	//lua.DoRequire("examples.hello")
-	lua.DoNop()
+func getDistrName() string {
+	return "unknown"
+}
+
+func getDistrVer() string {
+	return "unknown"
 }

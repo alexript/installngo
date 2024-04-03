@@ -25,6 +25,7 @@ package lua
 import (
 	"runtime"
 
+	"github.com/alexript/installngo/backends/os"
 	lual "github.com/yuin/gopher-lua"
 	luar "layeh.com/gopher-luar"
 )
@@ -46,24 +47,28 @@ func isLinux(L *lual.LState) int {
 }
 
 func isMacos(L *lual.LState) int {
-	return isOsName(L, "macos")
+	return isOsName(L, "darwin")
 }
 
 type platform struct {
-	OsName    string
-	Arch      string
-	IsWindows *lual.LFunction
-	IsLinux   *lual.LFunction
-	IsMacOS   *lual.LFunction
+	OsName              string
+	Arch                string
+	Distributive        string
+	DistributiveVersion string
+	IsWindows           *lual.LFunction
+	IsLinux             *lual.LFunction
+	IsMacOS             *lual.LFunction
 }
 
 func platformLoader(L *lual.LState) int {
 	tbl := luar.New(L, &platform{
-		OsName:    runtime.GOOS,
-		Arch:      runtime.GOARCH,
-		IsWindows: L.NewFunction(isWindows),
-		IsLinux:   L.NewFunction(isLinux),
-		IsMacOS:   L.NewFunction(isMacos),
+		OsName:              runtime.GOOS,
+		Arch:                runtime.GOARCH,
+		Distributive:        os.GetDistributiveName(),
+		DistributiveVersion: os.GetDistributiveVersion(),
+		IsWindows:           L.NewFunction(isWindows),
+		IsLinux:             L.NewFunction(isLinux),
+		IsMacOS:             L.NewFunction(isMacos),
 	})
 	L.Push(tbl)
 	return 1

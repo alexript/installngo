@@ -44,6 +44,7 @@ func NewLuaFS(cwd string) *overlayfs.OverlayFs {
 	if cwdLuadirStat, err := cwdFS.Stat("/lua"); err == nil {
 		if cwdLuadirStat.IsDir() {
 			baseLuaFS = afero.NewBasePathFs(osFS, cwd+"/lua")
+			//			fmt.Print("base at ./lua\n")
 		}
 	}
 
@@ -63,7 +64,7 @@ func NewLuaFS(cwd string) *overlayfs.OverlayFs {
 
 	for _, filename := range filenamesInCwd {
 		if strings.HasSuffix(strings.ToLower(filename), ".zip") {
-			//fmt.Printf("name: %q\n", name)
+			//			fmt.Printf("zip bundle name: %q\n", filename)
 			zrc, err := zip.OpenReader(filename)
 			if err == nil {
 				zipReaderFS := zipfs.New(&zrc.Reader)

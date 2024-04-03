@@ -20,14 +20,39 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package main
+//go:build linux
 
-import "github.com/alexript/installngo/backends/lua"
+package os
 
-func main() {
-	//lua.DoString(`print("Hello, Install&Go!")`)
-	//lua.DoFile(`lua/examples/hello.lua`)
-	//lua.DoRequire(`examples.require`)
-	//lua.DoRequire("examples.hello")
-	lua.DoNop()
+import (
+	"os/exec"
+	"strings"
+)
+
+var (
+	distrName string = "unknown"
+	distrVer  string = "unknown"
+)
+
+func getDistrName() string {
+	lsb_release()
+	return distrName
+}
+
+func getDistrVer() string {
+	lsb_release()
+	return distrVer
+}
+
+func lsb_release() {
+	output, err := exec.Command("lsb_release", "-a").Output()
+	if err == nil {
+		for _, line := range strings.Split(string(output), "\n") {
+			if strings.HasPrefix(line, "Distributor ID") {
+				distrName = strings.TrimSpace(strings.Split(line, "\t")[1])
+			} else if strings.HasPrefix(line, "Release") {
+				distrVer = strings.TrimSpace(strings.Split(line, "\t")[1])
+			}
+		}
+	}
 }
