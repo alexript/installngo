@@ -72,6 +72,7 @@ func New(cwd string) *overlayfs.OverlayFs {
 					if luadirInZipStat.IsDir() {
 						zipLuaFS := afero.NewBasePathFs(zipFS, "/lua")
 						newVirtualFS = newVirtualFS.Append(zipLuaFS)
+						break
 					}
 				}
 			}
