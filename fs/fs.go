@@ -37,10 +37,19 @@ func New(cwd string, bundlesPath string) *overlayfs.OverlayFs {
 	newFS := overlayfs.New(overlayfs.Options{Fss: []afero.Fs{}, FirstWritable: false})
 
 	osFS := afero.NewOsFs()
-	basepathFS := afero.NewBasePathFs(osFS, cwd)
+	cwdFS := afero.NewBasePathFs(osFS, cwd)
+
+	basepathFS := cwdFS
+
+	if luadir, err := cwdFS.Stat("/lua"); err == nil {
+		if luadir.IsDir() {
+			basepathFS = afero.NewBasePathFs(osFS, cwd+"/lua")
+		}
+	}
+
 	newFS = newFS.Append(basepathFS)
 
-	dir, err := basepathFS.Open("/")
+	dir, err := cwdFS.Open("/")
 	if err != nil {
 		fmt.Printf("Failed bundles search: %q\n", err.Error())
 		return newFS
@@ -54,7 +63,7 @@ func New(cwd string, bundlesPath string) *overlayfs.OverlayFs {
 
 	for _, name := range names {
 		if strings.HasSuffix(strings.ToLower(name), ".zip") {
-			//			fmt.Printf("name: %q\n", name)
+			//fmt.Printf("name: %q\n", name)
 			zrc, err := zip.OpenReader(name)
 			if err == nil {
 				zfs := zipfs.New(&zrc.Reader)

@@ -28,5 +28,5 @@ func main() {
 	// lua.DoString(`print("Hello, Install&Go!")`)
 	// lua.DoFile(`examples/hello.lua`)
 	// lua.DoRequire(`examples.require`)
-	lua.DoRequire("lua.init")
+	lua.DoNop()
 }

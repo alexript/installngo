@@ -70,6 +70,12 @@ func newLState() *lual.LState {
 	return L
 }
 
+func DoNop() {
+	L := newLState()
+	defer L.Close()
+	defer CloseOFS()
+}
+
 func DoString(luastring string) {
 	L := newLState()
 	defer L.Close()
