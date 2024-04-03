@@ -32,7 +32,7 @@ import (
 	"github.com/spf13/afero/zipfs"
 )
 
-func New(cwd string) *overlayfs.OverlayFs {
+func NewLuaFS(cwd string) *overlayfs.OverlayFs {
 
 	newVirtualFS := overlayfs.New(overlayfs.Options{Fss: []afero.Fs{}, FirstWritable: false})
 

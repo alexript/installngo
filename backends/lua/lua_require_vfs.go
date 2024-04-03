@@ -38,7 +38,7 @@ var ofs *overlayfs.OverlayFs
 func createCurrentFS() {
 	if ofs == nil {
 		cwd, _ := os.Getwd()
-		ofs = fs.New(cwd)
+		ofs = fs.NewLuaFS(cwd)
 	}
 }
 
