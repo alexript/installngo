@@ -1,3 +1,10 @@
-print("Install&Go")
+print("Install&Go examples")
+print("\n-- Example: require from folder ------")
+require("examples.require")
 require("examples.hello")
-print("---")
+require("examples.logging")
+require("examples.osinfo")
+
+print("\n-- Example: require from zipped bundle ------")
+require("examples-zip")
+print("--- EndOfExamples ------")
